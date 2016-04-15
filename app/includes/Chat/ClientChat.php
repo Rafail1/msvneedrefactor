@@ -4,22 +4,20 @@ class ClientChat extends Chat {
 
     private $client_id;
 
-    public function __construct($client_id) {
-        parent::__construct();
+    public function __construct($db, $client_id) {
+        parent::__construct($db);
         $this->client_id = $client_id;
     }
 
     public function getMessage($time) {
-        $fname = Chat::SERVER . $this->client_id;
-       
-        $response["messages"] = $this->getArchive($fname, Chat::SERVER, $time);
-        $response["online"] = $this->isOnline(Chat::SERVER);
+        $response["messages"] = $this->getArchive($this->client_id, SERVER, $time);
+        $response["online"] = $this->isOnline(SERVER);
         return json_encode($response);
     }
 
     public function getResponse($action) {
         
-        $this->setOnline(Chat::CLIENT, $this->client_id);
+        $this->setOnline(CLIENT, $this->client_id);
         if($action === "check") {
             return $this->getMessage(filter_input(INPUT_POST, "lastTime"));
         } else if ($action === "getArchive") {
@@ -34,6 +32,6 @@ class ClientChat extends Chat {
     
     public function getStory() {
         $messages = $this->getChat($this->client_id);
-        return json_encode(["messages" => $messages, "online" => $this->isOnline(Chat::SERVER)]);
+        return json_encode(["messages" => $messages, "online" => $this->isOnline(SERVER)]);
     }
 }

@@ -14,6 +14,7 @@ class ChatFactory  {
     protected function __wakeup() {}
     
     static public function getInstance() {
+       
         if(is_null(self::$_instance)) {
             self::$_instance = new self();
         }
@@ -21,10 +22,12 @@ class ChatFactory  {
     }
     
     public function getChat($who, $client_id = false) {
-        if($who === Chat::CLIENT) {
-            $chat = new ClientChat($client_id);
-        } elseif($who === Chat::SERVER) {
-            $chat = new ServerChat();
+       
+        $db = new DB\FileDB();
+        if($who === CLIENT) {
+            $chat = new ClientChat($db,$client_id);
+        } elseif($who === SERVER) {
+            $chat = new ServerChat($db);
         }
         return $chat;
     }

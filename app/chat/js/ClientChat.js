@@ -1,12 +1,8 @@
 /* global Mustache, Chat */
 
 function clientChat(client_id) {
-    this.messages = [];
     this.client_id = client_id;
-    this.chat_url = "/app/chat/controller.php";
-    this.lastNotify = 0;
     this.who = "client";
-    this.lastTime = 0;
     this.notifySoundMessage = new Audio("/app/chat/audio/client-message.mp3");
     this.notifySoundOpen = new Audio("/app/chat/audio/open.mp3");
     this.timeout = null;

@@ -4,6 +4,10 @@ function Chat() {}
 
 Chat.prototype = {
     constructor: Chat(),
+    messages : [],
+    chat_url : "/app/chat/controller.php",
+    lastNotify : 0,
+    
     request: function (data, callbalck) {
         if(!data) {
             console.error("No data");

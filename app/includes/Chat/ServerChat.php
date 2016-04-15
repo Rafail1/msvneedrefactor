@@ -6,50 +6,19 @@ class ServerChat extends Chat {
     private $activeChats;
     private $lastAccess;
 
-    public function __construct() {
-        parent::__construct();
+    public function __construct($db) {
+        parent::__construct($db);
         $this->setActiveChats();
     }
 
     public function removeChat($id) {
-        $clientFile = $this->archDir . "/" . Chat::CLIENT . $id;
-        $serverFile = $this->archDir . "/" . Chat::SERVER . $id;
-        $onlineFile = $this->statusDir . "/" . Chat::CLIENT . $id . "status";
-
-        $remove = [$clientFile, $serverFile, $onlineFile];
-
-        foreach ($remove as $file) {
-            if (file_exists($file)) {
-                unlink($file);
-            }
-        }
-        
-        return json_encode(["removed" => true]);
+        return $this->db->remove($id);
     }
 
     public function setActiveChats() {
-        $iterator = new \DirectoryIterator($this->archDir);
-        $chats = [];
-        foreach ($iterator as $info) {
-            if (!$info->isFile()) {
-                continue;
-            }
-            
-            if (strpos($info->getFilename(), Chat::SERVER) === 0) {
-                $who = Chat::SERVER;
-            } else {
-                $who = Chat::CLIENT;
-            }
-
-            $fid = str_replace($who, "", $info->getFilename());
-            if (!$this->lastAccess[$fid] || $this->lastAccess[$fid] < $info->getMTime()) {
-                $this->lastAccess[$fid] = $info->getMTime();
-            }
-            if (!in_array($fid, $chats)) {
-                $chats[] = $fid;
-            }
-        }
-        $this->activeChats = $chats;
+        $db_res = $this->db->getActiveChats();
+        $this->activeChats = $db_res['chats'];
+        $this->lastAccess = $db_res['lastAccess'];
     }
 
     public function getNew($chats = array()) {
@@ -60,10 +29,10 @@ class ServerChat extends Chat {
         }
         foreach ($this->lastAccess as $id => $la) {
             if (!$chats[$id] || $chats[$id] < $la) {
-                $messages = $this->getArchive(Chat::CLIENT . $id, "client", $chats[$id]);
+                $messages = $this->getArchive($id, CLIENT, $chats[$id]);
                 $response[$id]["messages"] = $messages;
             }
-            $response[$id]["online"] = $this->isOnline(Chat::CLIENT, $id);
+            $response[$id]["online"] = $this->isOnline(CLIENT, $id);
         }
         return json_encode($response);
     }
@@ -82,7 +51,7 @@ class ServerChat extends Chat {
         foreach ($this->activeChats as $id) {
             $messages = $this->getChat($id);
             $response[$id]["messages"] = $messages;
-            $response[$id]["online"] = $this->isOnline(Chat::CLIENT, $id);
+            $response[$id]["online"] = $this->isOnline(CLIENT, $id);
         }
         return json_encode($response);
     }
@@ -95,11 +64,11 @@ class ServerChat extends Chat {
     }
 
     public function getResponse($action) {
-        $this->setOnline(Chat::SERVER);
+        $this->setOnline(SERVER);
         
         if ($action === "check") {
-            $chats = json_decode(filter_input(INPUT_POST, "lastTime"), true);
-            return  $this->getNew($chats);
+            $lastTimes = json_decode(filter_input(INPUT_POST, "lastTime"), true);
+            return  $this->getNew($lastTimes);
         } else if($action === "getArchive") {
             return $this->getStory();
         } else if($action === "send") {

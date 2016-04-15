@@ -1,9 +1,6 @@
 /* global Mustache, Chat */
 
 function serverChat() {
-    this.messages = [];
-    this.chat_url = "/app/chat/controller.php";
-    this.lastNotify = 0;
     this.who = "server";
     this.notifySoundMessage = new Audio("/app/chat/audio/server-message.mp3");
     this.notifySoundNew = new Audio("/app/chat/audio/new-chat.mp3");
